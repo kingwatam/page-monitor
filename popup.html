@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { width: 420px; padding: 8px; font-family: system-ui, sans-serif; font-size: 13px; }
+    h2 { margin: 0 0 4px; font-size: 15px; }
+    label { display: block; margin: 4px 0 2px; font-size: 12px; }
+    input[type="number"] { width: 70px; padding: 2px 4px; }
+    input[type="text"] { width: 100%; padding: 2px 4px; box-sizing: border-box; }
+    button { margin: 0; padding: 2px 8px; cursor: pointer; font-size: 12px; }
+    .hint { font-size: 10px; color: #888; margin: 1px 0 2px; }
+    .section { margin-top: 6px; }
+    .section-title { font-weight: 600; margin-bottom: 2px; font-size: 12px; }
+    .current-url { word-break: break-all; font-size: 11px; color: #555; margin: 2px 0; padding: 3px 6px; background: #f5f5f5; border-radius: 4px; }
+    .tab-list { border: 1px solid #ddd; border-radius: 4px; overflow-y: auto; }
+    #tabList { max-height: 200px; }
+    #alertedList { max-height: 100px; }
+    .tab-item { display: flex; align-items: center; padding: 4px 6px; border-bottom: 1px solid #eee; font-size: 11px; }
+    .tab-item:last-child { border-bottom: none; }
+    .tab-item .url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; cursor: pointer; }
+    .tab-item .url:hover { text-decoration: underline; color: #007bff; }
+    .tab-item .meta { font-size: 10px; color: #888; white-space: nowrap; margin-right: 4px; }
+    .tab-item .active-badge { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; flex-shrink: 0; }
+    .tab-item .active-badge.on { background: #28a745; }
+    .tab-item .active-badge.off { background: #dc3545; }
+    .remove-btn { background: none; border: 1px solid #dc3545; color: #dc3545; padding: 1px 6px; border-radius: 3px; font-size: 10px; }
+    .toolbar { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+    .toggle-row { display: flex; align-items: center; gap: 4px; font-size: 11px; margin-top: 2px; }
+    .toggle-row input[type="checkbox"] { margin: 0; transform: scale(0.85); }
+    .toggle-row input[type="number"] { width: 50px; padding: 1px 2px; }
+    .drag-handle { cursor: grab; color: #aaa; font-size: 12px; padding: 0 2px; user-select: none; flex-shrink: 0; }
+    .drag-handle:active { cursor: grabbing; }
+    .tab-item.dragging { opacity: 0.4; }
+    .tab-item.drag-over { border-top: 2px solid #007bff; }
+    .add-section { padding: 4px 6px; background: #f0f8ff; border-radius: 4px; border: 1px solid #b8daff; }
+    .empty-hint { padding: 8px; text-align: center; color: #999; font-size: 12px; }
+    .status-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+    .status-badge.active { background: #d4edda; color: #155724; }
+    .status-badge.paused { background: #fff3cd; color: #856404; }
+    .status-badge.inactive { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <h2>Page Monitor
+    <button id="popoutBtn" style="float:right;background:none;border:1px solid #007bff;color:#007bff;border-radius:3px;padding:1px 6px;font-size:10px;cursor:pointer;">Pop out</button>
+  </h2>
+
+  <div class="status-bar">
+    <span class="status-badge" id="statusBadge">Not monitoring</span>
+  </div>
+
+  <div class="section">
+    <div class="current-url" id="currentUrl"></div>
+    <div class="add-section" id="addSection">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button id="addBtn" style="background:#007bff;color:#fff;border:none;">Add this page</button>
+        <button id="selectTabsBtn" style="background:#6c757d;color:#fff;border:none;">Select tabs</button>
+      </div>
+      <div id="tabSelectPanel" style="display:none; margin-top:6px;">
+        <div id="tabSelectList" class="tab-list" style="max-height:160px;"></div>
+        <div style="display:flex; gap:6px; margin-top:6px;">
+          <button id="addSelectedBtn" style="background:#007bff;color:#fff;border:none;">Add selected</button>
+          <button id="cancelSelectBtn" style="background:none;border:1px solid #6c757d;color:#6c757d;">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="alreadyMonitored" style="display:none; font-size:12px; color:#666; padding:4px 0;">Already monitored</div>
+  </div>
+
+  <div class="section">
+    <div class="toolbar">
+      <div class="section-title" style="flex:1;">Monitored pages</div>
+      <button id="pauseBtn" style="background:#ffc107;color:#856404;border:none;display:none;">Pause</button>
+      <button id="resetBtn" style="background:#6c757d;color:#fff;border:none;" disabled>Reset</button>
+      <button id="clearListBtn" style="background:none;border:1px solid #dc3545;color:#dc3545;padding:1px 6px;font-size:10px;display:none;">Clear list</button>
+    </div>
+    <div class="toggle-row">
+      <input type="checkbox" id="staggerToggle" />
+      <label for="staggerToggle" style="margin:0;">Stagger refreshes</label>
+      <span id="staggerLabel" style="font-size:11px;color:#888;"></span>
+    </div>
+    <div class="tab-list" id="tabList">
+      <div class="empty-hint" id="emptyHint">No pages monitored.</div>
+    </div>
+  </div>
+
+  <div class="section" id="alertedSection" style="display:none;">
+    <div class="section-title">Alerted pages</div>
+    <div class="tab-list" id="alertedList">
+      <div class="empty-hint" id="alertedEmpty">No pages have triggered yet.</div>
+    </div>
+    <button id="clearAlertedBtn" style="margin-top:6px;background:none;border:1px solid #6c757d;color:#6c757d;border-radius:3px;padding:2px 8px;font-size:11px;">Clear list</button>
+  </div>
+
+  <div class="fields">
+    <label for="interval">Refresh interval (seconds):</label>
+    <input type="number" id="interval" min="1" value="3" />
+
+    <label for="loadDelay">Extra wait after page load (seconds):</label>
+    <input type="number" id="loadDelay" min="0" max="60" value="" placeholder="0" />
+    <div class="hint">Leave empty to check immediately.</div>
+
+    <label for="triggerText">Trigger on text (regex):</label>
+    <input type="text" id="triggerText" placeholder="e.g. in stock or price.*\$49" value="\$(?!50\+|25\+|22\.50 p)" />
+    <div class="hint">Case-insensitive. Alert fires when this text appears.</div>
+
+    <label for="alertDuration">Alert sound duration (seconds):</label>
+    <input type="number" id="alertDuration" min="1" max="30" value="3" />
+
+    <div class="toggle-row" style="margin-top:8px;">
+      <input type="checkbox" id="clickThroughToggle" />
+      <label for="clickThroughToggle" style="margin:0;">Click through to link on match</label>
+      <input type="number" id="clickThroughIndex" min="1" max="100" value="1" style="width:50px;" disabled />
+      <span style="font-size:11px;color:#888;">th match</span>
+    </div>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="switchTabToggle" />
+      <label for="switchTabToggle" style="margin:0;">Switch to tab on match</label>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

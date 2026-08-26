@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #f4f5f7; }
+    .page { max-width: 980px; margin: 0 auto; padding: 24px; }
+    .product { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; padding: 28px; }
+    .product h1 { margin: 0 0 8px; font-size: 26px; }
+    .product .price { font-size: 30px; font-weight: 700; color: #1a1a1a; }
+    .product .status { color: #b12704; font-weight: 600; margin: 10px 0 18px; }
+    .buy { background: #ffa41c; border: 1px solid #ff8f00; border-radius: 20px; padding: 10px 60px; font-size: 15px; cursor: pointer; }
+    .meta { color: #56595b; font-size: 13px; margin-top: 18px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="banner" id="__pm_banner" style="
+    position: fixed; top: 0; left: 0; right: 0; z-index: 2147483647;
+    background: #fff3cd; color: #856404; padding: 14px 20px;
+    font: 15px/1.4 system-ui, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid #ffc107;
+  ">
+    <span><b>Page Monitor:</b> Match found: "In stock - ships today"</span>
+    <button id="__pm_close" style="
+      background:none;border:1px solid #856404;border-radius:4px;padding:4px 12px;
+      cursor:pointer;font-size:14px;color:#856404;">Dismiss</button>
+  </div>
+
+  <div class="page" style="padding-top: 70px;">
+    <div class="product">
+      <h1>Example Store - RTX 4090 Graphics Card</h1>
+      <div class="price">$1,599.00</div>
+      <div class="status">In stock - ships today</div>
+      <button class="buy">Add to Cart</button>
+      <div class="meta">
+        Restock alerts fire the moment this page changes. Refreshed automatically by
+        Page Monitor every 10 seconds.<br>
+        Listing #EX-4090 · Ships from Example Warehouse · 3-year warranty available
+      </div>
+    </div>
+  </div>
+</body>
+</html>
